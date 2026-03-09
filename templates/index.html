@@ -1,138 +1,306 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Note Agent</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#141414" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Agente de Programación</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <style>
-        body {
-            font-family: Arial;
-            max-width: 700px;
-            margin: 40px auto;
-        }
+    :root {
+      --bg:      #141414;
+      --surface: #1e1e1e;
+      --border:  #333;
+      --text:    #f5f5f5;
+      --muted:   #c0c0c0;
+      --faint:   #888;
+    }
 
-        textarea {
-            width: 100%;
-            height: 100px;
-        }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lato', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      /* Evita que el navegador muestre barras extra */
+      overscroll-behavior: none;
+    }
 
-        button {
-            padding: 10px 20px;
-            margin-top: 10px;
-        }
+    /* ── Hero ── */
+    .hero {
+      min-height: 100svh; /* svh respeta la barra del navegador en móvil */
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 60px 40px;
+    }
 
-        #response {
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            padding: 10px;
-            display: none;
-            white-space: pre-wrap;
-        }
+    .inner { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 18px; animation: up .5s ease both; }
 
-        .error {
-            color: red;
-            border-color: red;
-        }
-    </style>
+    h1 { font-size: clamp(1.4rem, 3.5vw, 2rem); font-weight: 300; letter-spacing: -0.02em; white-space: nowrap; }
+    h1 span { font-weight: 700; }
+
+    .sub { font-size: 0.93rem; font-weight: 400; color: var(--faint); line-height: 1.6; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 2px 0; }
+
+    /* ── Model pill ── */
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 12px; border: 1px solid var(--border);
+      border-radius: 99px; width: fit-content;
+    }
+    .pill-dot { width: 7px; height: 7px; border-radius: 50%; background: #f2f2f2; opacity: .5; }
+    .pill span { font-size: 0.85rem; font-weight: 400; color: var(--muted); letter-spacing: .04em; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 40px rgba(0,0,0,.45);
+    }
+
+    .input-zone { padding: 20px 24px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    .prompt-label {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: .12em;
+      color: var(--faint); margin-bottom: 2px;
+    }
+
+    textarea {
+      background: transparent; border: none; outline: none; resize: none;
+      font-family: 'Lato', sans-serif; font-size: 0.98rem; font-weight: 300;
+      color: var(--muted); line-height: 1.9;
+      min-height: 50px;
+      width: 100%;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    textarea::-webkit-scrollbar { width: 4px; }
+    textarea::-webkit-scrollbar-track { background: transparent; }
+    textarea::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    textarea::placeholder { color: var(--faint); }
+
+    .bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 10px; border-top: 1px solid var(--border);
+    }
+
+    .char { font-size: 0.75rem; color: var(--faint); }
+    .char.warn { color: #c0c0c0; }
+    .char.over { color: var(--text); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 18px; background: var(--text); color: var(--bg);
+      border: none; border-radius: 6px;
+      font-family: 'Lato', sans-serif; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: opacity .15s;
+    }
+    .btn:hover:not(:disabled) { opacity: .85; }
+    .btn:disabled { opacity: .3; cursor: not-allowed; }
+    .btn svg { width: 11px; height: 11px; stroke: var(--bg); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── Respuesta ── */
+    .response-zone {
+      border-top: 1px solid var(--border);
+      padding: 18px 24px 22px;
+      display: none;
+      animation: up .25s ease both;
+    }
+    .response-zone.visible { display: block; }
+    .res-label {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: .12em;
+      color: var(--faint); margin-bottom: 14px;
+    }
+    .res-body {
+      font-size: 1rem; font-weight: 300; line-height: 2;
+      white-space: pre-wrap; word-break: break-word;
+      color: var(--muted);
+      max-height: 420px;       
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    
+    .res-body::-webkit-scrollbar { width: 4px; }
+    .res-body::-webkit-scrollbar-track { background: transparent; }
+    .res-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    .res-body.err { color: var(--muted); }
+
+    .spinner { width: 12px; height: 12px; border: 1.5px solid rgba(0,0,0,.2); border-top-color: var(--bg); border-radius: 50%; animation: spin .5s linear infinite; }
+
+    .hint { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 8px; cursor: pointer; opacity: .3; transition: opacity .2s; }
+    .hint:hover { opacity: .55; }
+    .hint span { font-size: 0.65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .hint svg { width: 13px; height: 13px; stroke: var(--muted); fill: none; stroke-width: 1.8; stroke-linecap: round; animation: bounce 2s ease-in-out infinite; }
+
+    /* ── Info ── */
+    .info { max-width: 900px; margin: 0 auto; padding: 90px 40px 110px; display: flex; flex-direction: column; gap: 64px; }
+
+    .section-title { font-size: 0.8rem; letter-spacing: .18em; text-transform: uppercase; color: var(--faint); margin-bottom: 26px; }
+
+    .tools { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .tool { background: var(--surface); padding: 28px 26px; transition: background .15s; }
+    .tool:hover { background: #242424; }
+    .tool-name { font-size: 1.05rem; font-weight: 700; margin-bottom: 5px; }
+    .tool-src { font-size: 0.82rem; color: var(--faint); margin-bottom: 12px; }
+    .tool-desc { font-size: 0.97rem; font-weight: 400; color: var(--muted); line-height: 1.75; }
+
+    .caps { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .cap { display: flex; gap: 16px; }
+    .cap-num { font-size: 0.78rem; color: var(--faint); padding-top: 3px; flex-shrink: 0; }
+    .cap-text { font-size: 0.97rem; font-weight: 400; color: var(--muted); line-height: 1.7; }
+    .cap-text strong { color: var(--text); font-weight: 700; display: block; margin-bottom: 3px; }
+
+    footer { border-top: 1px solid var(--border); padding: 28px 40px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem; color: var(--faint); }
+    footer a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color .15s, border-color .15s; }
+    footer a:hover { color: var(--text); border-color: var(--muted); }
+
+    @media (max-width: 640px) {
+      .caps { grid-template-columns: 1fr; }
+      h1 { white-space: normal; }
+      .hero, .info { padding-left: 20px; padding-right: 20px; }
+      .input-zone { padding: 16px 16px 12px; }
+      .response-zone { padding: 16px 16px 18px; }
+    }
+
+    @keyframes up     { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin   { to { transform:rotate(360deg); } }
+    @keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(4px); } }
+  </style>
 </head>
-
 <body>
 
-    <h1>Note Agent</h1>
+<section class="hero">
+  <div class="inner">
+    <h1>¡<span>Bienvenido</span> al chat!</h1>
+    <p class="sub">Pregunta sobre programación — conceptos, librerías, errores, buenas prácticas. El agente consulta múltiples fuentes para darte una respuesta precisa.</p>
+    <div class="pill"><span class="pill-dot"></span><span>gpt-4o-mini · LangGraph</span></div>
+    <hr />
+    <div class="card">
+      <div class="input-zone">
+        <p class="prompt-label">Pregunta</p>
+        <textarea id="prompt" placeholder="Escribe un mensaje..." maxlength="300"></textarea>
+        <div class="bar">
+          <span class="char" id="charCount">0 / 300</span>
+          <button class="btn" id="sendBtn">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Enviar
+          </button>
+        </div>
+      </div>
+      <div class="response-zone" id="responseZone">
+        <p class="res-label" id="resLabel">Respuesta</p>
+        <p class="res-body"  id="resBody"></p>
+      </div>
+    </div>
+    <div class="hint" onclick="document.getElementById('info').scrollIntoView({behavior:'smooth'})">
+      <span>Ver más</span>
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+</section>
 
-    <form id="agentForm">
+<section class="info" id="info">
+  <div>
+    <p class="section-title">Herramientas disponibles</p>
+    <div class="tools">
+      <div class="tool">
+        <p class="tool-name">Wikipedia</p>
+        <p class="tool-src">en.wikipedia.org/api/rest_v1</p>
+        <p class="tool-desc">Obtiene resúmenes de conceptos de ciencias de la computación: estructuras de datos, algoritmos, paradigmas y teoría.</p>
+      </div>
+      <div class="tool">
+        <p class="tool-name">GitHub</p>
+        <p class="tool-src">api.github.com/search/repositories</p>
+        <p class="tool-desc">Encuentra los repositorios más populares por tema o librería, ordenados por estrellas. Permite filtrar por lenguaje de programación.</p>
+      </div>
+      <div class="tool">
+        <p class="tool-name">Stack Overflow</p>
+        <p class="tool-src">api.stackexchange.com/2.3</p>
+        <p class="tool-desc">Busca hilos de preguntas y respuestas priorizando las contestadas. Extrae la respuesta más votada con sus etiquetas y enlace.</p>
+      </div>
+    </div>
+  </div>
 
-        <textarea id="prompt" placeholder="Example: create note ideas.txt with content Build AI startup"
-            required></textarea>
+  <div>
+    <p class="section-title">¿Qué puedes preguntar?</p>
+    <div class="caps">
+      <div class="cap"><span class="cap-num">01</span><p class="cap-text"><strong>Conceptos y teoría</strong>Algoritmos, estructuras de datos, patrones de diseño y fundamentos de CS.</p></div>
+      <div class="cap"><span class="cap-num">02</span><p class="cap-text"><strong>Descubrir librerías</strong>Las librerías open-source más populares para cualquier lenguaje o tarea.</p></div>
+      <div class="cap"><span class="cap-num">03</span><p class="cap-text"><strong>Depuración</strong>Pega un error o describe un bug y obtén respuestas reales de Stack Overflow.</p></div>
+      <div class="cap"><span class="cap-num">04</span><p class="cap-text"><strong>Buenas prácticas</strong>Cómo estructurar código, elegir entre enfoques y seguir convenciones.</p></div>
+      <div class="cap"><span class="cap-num">05</span><p class="cap-text"><strong>Comparativas</strong>Diferencias entre lenguajes, frameworks o herramientas con contexto real.</p></div>
+      <div class="cap"><span class="cap-num">06</span><p class="cap-text"><strong>Ejemplos de código</strong>Repositorios con implementaciones reales del tema que estás explorando.</p></div>
+    </div>
+  </div>
+</section>
 
-        <button type="submit">
-            Send
-        </button>
+<footer>Desarrollado por <a href="https://agustindelmonte.com/" target="_blank" rel="noopener">agustindelmonte.com</a></footer>
 
-    </form>
+<script>
+  const promptEl = document.getElementById('prompt');
+  const charCount = document.getElementById('charCount');
+  const sendBtn   = document.getElementById('sendBtn');
+  const resZone   = document.getElementById('responseZone');
+  const resLabel  = document.getElementById('resLabel');
+  const resBody   = document.getElementById('resBody');
 
-    <div id="response"></div>
+  const MAX = 600;
 
-    <h2>Your Notes</h2>
-    <ul id="notes"></ul>
+  promptEl.addEventListener('input', () => {
+    const n = promptEl.value.length;
+    charCount.textContent = `${n} / ${MAX}`;
+    charCount.className = 'char' + (n > MAX ? ' over' : n > 500 ? ' warn' : '');
+  });
 
+  promptEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+  });
 
-    <script>
+  sendBtn.addEventListener('click', submit);
 
-        const form = document.getElementById("agentForm");
-        const promptInput = document.getElementById("prompt");
-        const responseDiv = document.getElementById("response");
+  async function submit() {
+    const prompt = promptEl.value.trim();
+    if (!prompt || sendBtn.disabled) return;
 
+    promptEl.value = '';
+    charCount.textContent = `0 / ${MAX}`;
+    charCount.className = 'char';
 
-        form.addEventListener("submit", async (e) => {
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<span class="spinner"></span> Consultando…';
+    resZone.className = 'response-zone visible';
+    resLabel.textContent = 'Respuesta';
+    resBody.className = 'res-body';
+    resBody.textContent = '';
 
-            e.preventDefault();
-
-            responseDiv.style.display = "block";
-            responseDiv.textContent = "Loading...";
-
-            try {
-
-                const response = await fetch("/agent", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        prompt: promptInput.value
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-
-                    responseDiv.textContent = data.response;
-                    loadNotes();
-
-                } else {
-
-                    responseDiv.className = "error";
-                    responseDiv.textContent = data.detail;
-
-                }
-
-            } catch (error) {
-
-                responseDiv.className = "error";
-                responseDiv.textContent = error.message;
-
-            }
-
-        });
-
-
-        async function loadNotes() {
-
-            const res = await fetch("/notes");
-            const data = await res.json();
-
-            const list = document.getElementById("notes");
-
-            list.innerHTML = "";
-
-            data.notes.forEach(note => {
-
-                const li = document.createElement("li");
-
-                li.textContent = note;
-
-                list.appendChild(li);
-
-            });
-
-        }
-
-        loadNotes();
-
-    </script>
-
+    try {
+      const res  = await fetch('/agent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      const data = await res.json();
+      if (res.ok) {
+        resBody.textContent = data.response;
+      } else {
+        resLabel.textContent = `Error ${res.status}`;
+        resBody.className = 'res-body err';
+        resBody.textContent = data.detail || 'Error desconocido.';
+      }
+    } catch (err) {
+      resLabel.textContent = 'Error de red';
+      resBody.className = 'res-body err';
+      resBody.textContent = err.message;
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--bg);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar`;
+    }
+  }
+</script>
 </body>
-
 </html>
