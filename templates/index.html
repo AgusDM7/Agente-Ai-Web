@@ -13,12 +13,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:      #141414;
-      --surface: #1e1e1e;
-      --border:  #333;
-      --text:    #f5f5f5;
-      --muted:   #c0c0c0;
-      --faint:   #888;
+      --bg:        #141414;
+      --surface:   #141414;
+      --surface2:  #141414;
+      --border:    #272727;
+      --text:      #f5f5f5;
+      --muted:     #c0c0c0;
+      --faint:     #888;
+      --bubble-user: #e0e0e0;
+      --bubble-user-text: #141414;
+      --bubble-ai:   #1c1c1c;
+      --bubble-ai-text: #c0c0c0;
     }
 
     html { scroll-behavior: smooth; }
@@ -27,72 +32,151 @@
       color: var(--text);
       font-family: 'Lato', sans-serif;
       -webkit-font-smoothing: antialiased;
-      /* Evita que el navegador muestre barras extra */
       overscroll-behavior: none;
     }
 
-    /* ── Hero ── */
+    /* ── Hero / landing ── */
     .hero {
-      min-height: 100svh; /* svh respeta la barra del navegador en móvil */
+      min-height: 100svh;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       padding: 60px 40px;
     }
 
-    .inner { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 18px; animation: up .5s ease both; }
+    .inner { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 18px; animation: up .5s ease both; }
 
     h1 { font-size: clamp(1.4rem, 3.5vw, 2rem); font-weight: 300; letter-spacing: -0.02em; white-space: nowrap; }
     h1 span { font-weight: 700; }
 
-    .sub { font-size: 0.93rem; font-weight: 400; color: var(--faint); line-height: 1.6; }
+    .sub { font-size: 0.93rem; color: var(--faint); line-height: 1.6; }
 
     hr { border: none; border-top: 1px solid var(--border); margin: 2px 0; }
 
-    /* ── Model pill ── */
     .pill {
       display: inline-flex; align-items: center; gap: 8px;
       padding: 5px 12px; border: 1px solid var(--border);
       border-radius: 99px; width: fit-content;
     }
     .pill-dot { width: 7px; height: 7px; border-radius: 50%; background: #f2f2f2; opacity: .5; }
-    .pill span { font-size: 0.85rem; font-weight: 400; color: var(--muted); letter-spacing: .04em; }
+    .pill span { font-size: 0.85rem; color: var(--muted); letter-spacing: .04em; }
 
-    /* ── Card ── */
+    /* ── Chat card ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       box-shadow: 0 8px 40px rgba(0,0,0,.45);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
-    .input-zone { padding: 20px 24px 14px; display: flex; flex-direction: column; gap: 10px; }
-
-    .prompt-label {
-      font-size: 0.78rem; text-transform: uppercase; letter-spacing: .12em;
-      color: var(--faint); margin-bottom: 2px;
-    }
-
-    textarea {
-      background: transparent; border: none; outline: none; resize: none;
-      font-family: 'Lato', sans-serif; font-size: 0.98rem; font-weight: 300;
-      color: var(--muted); line-height: 1.9;
-      min-height: 50px;
-      width: 100%;
+    /* ── Messages list ── */
+    .chat-log {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 20px 20px 10px;
+      max-height: 680px;
       overflow-y: auto;
+      scroll-behavior: smooth;
       scrollbar-width: thin;
       scrollbar-color: var(--border) transparent;
     }
+    .chat-log:empty { display: none; }
+    .chat-log::-webkit-scrollbar { width: 4px; }
+    .chat-log::-webkit-scrollbar-track { background: transparent; }
+    .chat-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ── Bubbles ── */
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+      gap: 4px;
+      animation: up .2s ease both;
+    }
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.ai   { align-self: flex-start; align-items: flex-start; }
+
+    .bubble {
+      padding: 10px 15px;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 300;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg.user .bubble {
+      background: var(--bubble-user);
+      color: var(--bubble-user-text);
+      border-bottom-right-radius: 4px;
+    }
+    .msg.ai .bubble {
+      background: var(--bubble-ai);
+      color: var(--bubble-ai-text);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .msg-label {
+      font-size: 0.72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--faint);
+      padding: 0 4px;
+    }
+
+    /* Typing indicator */
+    .typing-bubble {
+      display: flex; align-items: center; gap: 5px;
+      padding: 12px 16px;
+      background: var(--bubble-ai);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      border-bottom-left-radius: 4px;
+    }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%; background: var(--faint);
+      animation: bounce-dot 1.2s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: .2s; }
+    .dot:nth-child(3) { animation-delay: .4s; }
+
+    /* ── Divider between log and input ── */
+    .chat-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0;
+    }
+
+    /* ── Input zone — single unified row ── */
+    .input-zone {
+      padding: 10px 14px 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent; border: none; outline: none; resize: none;
+      font-family: 'Lato', sans-serif; font-size: 0.95rem; font-weight: 300;
+      color: var(--muted); line-height: 1.6;
+      min-height: 36px; max-height: 100px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+      padding: 6px 0;
+      align-self: center;
+    }
     textarea::-webkit-scrollbar { width: 4px; }
-    textarea::-webkit-scrollbar-track { background: transparent; }
     textarea::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
     textarea::placeholder { color: var(--faint); }
 
-    .bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding-top: 10px; border-top: 1px solid var(--border);
-    }
-
-    .char { font-size: 0.75rem; color: var(--faint); }
+    .char { font-size: 0.72rem; color: var(--faint); white-space: nowrap; flex-shrink: 0; }
     .char.warn { color: #c0c0c0; }
     .char.over { color: var(--text); }
 
@@ -107,42 +191,16 @@
     .btn:disabled { opacity: .3; cursor: not-allowed; }
     .btn svg { width: 11px; height: 11px; stroke: var(--bg); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-    /* ── Respuesta ── */
-    .response-zone {
-      border-top: 1px solid var(--border);
-      padding: 18px 24px 22px;
-      display: none;
-      animation: up .25s ease both;
-    }
-    .response-zone.visible { display: block; }
-    .res-label {
-      font-size: 0.78rem; text-transform: uppercase; letter-spacing: .12em;
-      color: var(--faint); margin-bottom: 14px;
-    }
-    .res-body {
-      font-size: 1rem; font-weight: 300; line-height: 2;
-      white-space: pre-wrap; word-break: break-word;
-      color: var(--muted);
-      max-height: 420px;       
-      overflow-y: auto;
-      padding-right: 6px;
-    }
-    
-    .res-body::-webkit-scrollbar { width: 4px; }
-    .res-body::-webkit-scrollbar-track { background: transparent; }
-    .res-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-
-    .res-body.err { color: var(--muted); }
-
     .spinner { width: 12px; height: 12px; border: 1.5px solid rgba(0,0,0,.2); border-top-color: var(--bg); border-radius: 50%; animation: spin .5s linear infinite; }
 
+    /* ── Scroll hint ── */
     .hint { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 8px; cursor: pointer; opacity: .3; transition: opacity .2s; }
     .hint:hover { opacity: .55; }
     .hint span { font-size: 0.65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
     .hint svg { width: 13px; height: 13px; stroke: var(--muted); fill: none; stroke-width: 1.8; stroke-linecap: round; animation: bounce 2s ease-in-out infinite; }
 
-    /* ── Info ── */
-    .info { max-width: 900px; margin: 0 auto; padding: 90px 40px 110px; display: flex; flex-direction: column; gap: 64px; }
+    /* ── Info section ── */
+    .info { max-width: 780px; margin: 0 auto; padding: 90px 40px 110px; display: flex; flex-direction: column; gap: 64px; }
 
     .section-title { font-size: 0.8rem; letter-spacing: .18em; text-transform: uppercase; color: var(--faint); margin-bottom: 26px; }
 
@@ -156,7 +214,7 @@
     .caps { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
     .cap { display: flex; gap: 16px; }
     .cap-num { font-size: 0.78rem; color: var(--faint); padding-top: 3px; flex-shrink: 0; }
-    .cap-text { font-size: 0.97rem; font-weight: 400; color: var(--muted); line-height: 1.7; }
+    .cap-text { font-size: 0.97rem; color: var(--muted); line-height: 1.7; }
     .cap-text strong { color: var(--text); font-weight: 700; display: block; margin-bottom: 3px; }
 
     footer { border-top: 1px solid var(--border); padding: 28px 40px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem; color: var(--faint); }
@@ -167,40 +225,44 @@
       .caps { grid-template-columns: 1fr; }
       h1 { white-space: normal; }
       .hero, .info { padding-left: 20px; padding-right: 20px; }
-      .input-zone { padding: 16px 16px 12px; }
-      .response-zone { padding: 16px 16px 18px; }
+      .input-zone { padding: 8px 10px 8px 14px; }
+      .chat-log { padding: 16px 14px 8px; }
+      .msg { max-width: 90%; }
     }
 
-    @keyframes up     { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes spin   { to { transform:rotate(360deg); } }
-    @keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(4px); } }
+    @keyframes up       { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin     { to { transform:rotate(360deg); } }
+    @keyframes bounce   { 0%,100% { transform:translateY(0); } 50% { transform:translateY(4px); } }
+    @keyframes bounce-dot { 0%,80%,100% { transform:translateY(0); opacity:.4; } 40% { transform:translateY(-5px); opacity:1; } }
   </style>
 </head>
 <body>
 
 <section class="hero">
   <div class="inner">
-    <h1>¡<span>Bienvenido</span> al chat!</h1>
-    <p class="sub">Pregunta sobre programación — conceptos, librerías, errores, buenas prácticas. El agente consulta múltiples fuentes para darte una respuesta precisa.</p>
+    <h1>¡<span>Bienvenido</span> al chat para devs!</h1>
+    <p class="sub">Pregunta sobre programación — conceptos, librerías, errores y buenas prácticas.
+      El agente consulta Wikipedia, GitHub y Stack Overflow para darte respuestas precisas.</p>
     <div class="pill"><span class="pill-dot"></span><span>gpt-4o-mini · LangGraph</span></div>
     <hr />
+
     <div class="card">
+      <!-- Chat log: starts empty, messages appended here -->
+      <div class="chat-log" id="chatLog"></div>
+
+      <!-- Divider only visible when there are messages -->
+      <div class="chat-divider" id="chatDivider" style="display:none"></div>
+
       <div class="input-zone">
-        <p class="prompt-label">Pregunta</p>
-        <textarea id="prompt" placeholder="Escribe un mensaje..." maxlength="300"></textarea>
-        <div class="bar">
-          <span class="char" id="charCount">0 / 300</span>
-          <button class="btn" id="sendBtn">
-            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            Enviar
-          </button>
-        </div>
-      </div>
-      <div class="response-zone" id="responseZone">
-        <p class="res-label" id="resLabel">Respuesta</p>
-        <p class="res-body"  id="resBody"></p>
+        <textarea id="prompt" placeholder="Escribe un mensaje…" maxlength="300" rows="1"></textarea>
+        <span class="char" id="charCount">0 / 300</span>
+        <button class="btn" id="sendBtn">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Enviar
+        </button>
       </div>
     </div>
+
     <div class="hint" onclick="document.getElementById('info').scrollIntoView({behavior:'smooth'})">
       <span>Ver más</span>
       <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
@@ -236,9 +298,7 @@
       <div class="cap"><span class="cap-num">01</span><p class="cap-text"><strong>Conceptos y teoría</strong>Algoritmos, estructuras de datos, patrones de diseño y fundamentos de CS.</p></div>
       <div class="cap"><span class="cap-num">02</span><p class="cap-text"><strong>Descubrir librerías</strong>Las librerías open-source más populares para cualquier lenguaje o tarea.</p></div>
       <div class="cap"><span class="cap-num">03</span><p class="cap-text"><strong>Depuración</strong>Pega un error o describe un bug y obtén respuestas reales de Stack Overflow.</p></div>
-      <div class="cap"><span class="cap-num">04</span><p class="cap-text"><strong>Buenas prácticas</strong>Cómo estructurar código, elegir entre enfoques y seguir convenciones.</p></div>
-      <div class="cap"><span class="cap-num">05</span><p class="cap-text"><strong>Comparativas</strong>Diferencias entre lenguajes, frameworks o herramientas con contexto real.</p></div>
-      <div class="cap"><span class="cap-num">06</span><p class="cap-text"><strong>Ejemplos de código</strong>Repositorios con implementaciones reales del tema que estás explorando.</p></div>
+      <div class="cap"><span class="cap-num">04</span><p class="cap-text"><strong>Ejemplos de código</strong>Repositorios con implementaciones reales del tema que estás explorando.</p></div>
     </div>
   </div>
 </section>
@@ -246,59 +306,127 @@
 <footer>Desarrollado por <a href="https://agustindelmonte.com/" target="_blank" rel="noopener">agustindelmonte.com</a></footer>
 
 <script>
-  const promptEl = document.getElementById('prompt');
-  const charCount = document.getElementById('charCount');
-  const sendBtn   = document.getElementById('sendBtn');
-  const resZone   = document.getElementById('responseZone');
-  const resLabel  = document.getElementById('resLabel');
-  const resBody   = document.getElementById('resBody');
+  const promptEl   = document.getElementById('prompt');
+  const charCount  = document.getElementById('charCount');
+  const sendBtn    = document.getElementById('sendBtn');
+  const chatLog    = document.getElementById('chatLog');
+  const chatDivider = document.getElementById('chatDivider');
 
-  const MAX = 600;
+  const MAX = 300;
 
+  /* ── Char counter ── */
   promptEl.addEventListener('input', () => {
     const n = promptEl.value.length;
     charCount.textContent = `${n} / ${MAX}`;
-    charCount.className = 'char' + (n > MAX ? ' over' : n > 500 ? ' warn' : '');
+    charCount.className = 'char' + (n > MAX ? ' over' : n > 250 ? ' warn' : '');
   });
 
+  /* ── Enter to send (Shift+Enter = newline) ── */
   promptEl.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
   });
 
   sendBtn.addEventListener('click', submit);
 
+  /* ── Append a message bubble ── */
+  function appendMessage(role, text) {
+    // Show divider once the log has content
+    chatDivider.style.display = 'block';
+
+    const wrap = document.createElement('div');
+    wrap.className = `msg ${role}`;
+
+    const label = document.createElement('span');
+    label.className = 'msg-label';
+    label.textContent = role === 'user' ? 'Tú' : 'Agente';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+
+    wrap.appendChild(label);
+    wrap.appendChild(bubble);
+    chatLog.appendChild(wrap);
+    scrollToBottom();
+    return wrap;
+  }
+
+  /* ── Typing indicator ── */
+  function showTyping() {
+    chatDivider.style.display = 'block';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'msg ai';
+    wrap.id = 'typingIndicator';
+
+    const label = document.createElement('span');
+    label.className = 'msg-label';
+    label.textContent = 'Agente';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'typing-bubble';
+    bubble.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+
+    wrap.appendChild(label);
+    wrap.appendChild(bubble);
+    chatLog.appendChild(wrap);
+    scrollToBottom();
+  }
+
+  function removeTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  }
+
+  /* ── Scroll chat to bottom ── */
+  function scrollToBottom() {
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  /* ── Main submit ── */
   async function submit() {
     const prompt = promptEl.value.trim();
     if (!prompt || sendBtn.disabled) return;
 
+    // Reset input
     promptEl.value = '';
     charCount.textContent = `0 / ${MAX}`;
     charCount.className = 'char';
 
+    // Show user bubble
+    appendMessage('user', prompt);
+
+    // Disable input while waiting
     sendBtn.disabled = true;
     sendBtn.innerHTML = '<span class="spinner"></span> Consultando…';
-    resZone.className = 'response-zone visible';
-    resLabel.textContent = 'Respuesta';
-    resBody.className = 'res-body';
-    resBody.textContent = '';
+    promptEl.disabled = true;
+
+    // Show typing indicator
+    showTyping();
 
     try {
-      const res  = await fetch('/agent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      const res  = await fetch('/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
       const data = await res.json();
+
+      removeTyping();
+
       if (res.ok) {
-        resBody.textContent = data.response;
+        appendMessage('ai', data.response);
       } else {
-        resLabel.textContent = `Error ${res.status}`;
-        resBody.className = 'res-body err';
-        resBody.textContent = data.detail || 'Error desconocido.';
+        appendMessage('ai', `⚠ Error ${res.status}: ${data.detail || 'Error desconocido.'}`);
       }
     } catch (err) {
-      resLabel.textContent = 'Error de red';
-      resBody.className = 'res-body err';
-      resBody.textContent = err.message;
+      removeTyping();
+      appendMessage('ai', `⚠ Error de red: ${err.message}`);
     } finally {
       sendBtn.disabled = false;
-      sendBtn.innerHTML = `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--bg);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar`;
+      sendBtn.innerHTML = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:var(--bg);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar`;
+      promptEl.disabled = false;
+      promptEl.focus();
     }
   }
 </script>
