@@ -59,11 +59,7 @@ class AgentResponse(BaseModel):
 
 @app.get("/")
 async def home(request: Request):
-    """Serve the main HTML interface."""
-    return templates.TemplateResponse(
-    name="index.html",
-    context={"request": request}
-)
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 
