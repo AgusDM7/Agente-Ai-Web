@@ -3,10 +3,11 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from api.agent import run_agent
+from agent import run_agent
 import time
 
 app = FastAPI()
+
 templates = Jinja2Templates(directory="templates")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -59,8 +60,7 @@ class AgentResponse(BaseModel):
 
 @app.get("/")
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
+    return templates.TemplateResponse(request, "index.html") 
 
 
 @app.post("/agent", response_model=AgentResponse)
