@@ -7,10 +7,9 @@ from api.agent import run_agent
 import time
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="api/templates")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
+app.mount("/static", StaticFiles(directory="api/static"), name="static")
 
 # Seguridad
 MAX_PROMPT_LENGTH = 300
@@ -61,7 +60,10 @@ class AgentResponse(BaseModel):
 @app.get("/")
 async def home(request: Request):
     """Serve the main HTML interface."""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+    name="index.html",
+    context={"request": request}
+)
 
 
 
