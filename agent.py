@@ -4,6 +4,7 @@ from langgraph.prebuilt import create_react_agent
 from dotenv import load_dotenv
 import os
 import re
+import urllib.parse
 import httpx
 
 load_dotenv()
@@ -15,10 +16,14 @@ _gh_headers = {
 }
 
 
+_DEFAULT_HEADERS = {"User-Agent": "DevAssistantBot/1.0 (https://github.com/AgusDM7/Agente-Ai-Web)"}
+
+
 def _get(url: str, **kwargs) -> dict:
     """Shared HTTP GET helper with 10 s timeout."""
+    headers = {**_DEFAULT_HEADERS, **kwargs.pop("headers", {})}
     with httpx.Client(timeout=10) as client:
-        r = client.get(url, **kwargs)
+        r = client.get(url, headers=headers, **kwargs)
     r.raise_for_status()
     return r.json()
 
@@ -30,13 +35,29 @@ def _get(url: str, **kwargs) -> dict:
 def search_wikipedia(query: str) -> str:
     """Get a concise Wikipedia summary for any programming or CS concept."""
     try:
-        # Codifica el query para usarlo en la URL
-        d = _get( f"https://en.wikipedia.org/api/rest_v1/page/summary/{httpx.utils.quote(query)}")
-        page_url = d.get("content_urls", {}).get("desktop", {}).get("page", "") # Extrae la URL de la versión desktop
-        return f"**{d['title']}**\n\n{d.get('extract', 'No summary.')}\n\n{page_url}"
-    
+        # Paso 1: buscar el título de la página con la REST API
+        pages = _get(
+            "https://en.wikipedia.org/w/rest.php/v1/search/page",
+            params={"q": query, "limit": 1},
+        ).get("pages", [])
+
+        if not pages:
+            return f"No Wikipedia article found for '{query}'."
+
+        key = pages[0]["key"]
+
+        # Paso 2: obtener el resumen de la página
+        data = _get(
+            f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(key)}"
+        )
+        title = data.get("title", key)
+        extract = data.get("extract", "No summary available.")
+        url = data.get("content_urls", {}).get("desktop", {}).get("page", "")
+
+        return f"**{title}**\n\n{extract}\n\n{url}"
+
     except Exception as e:
-        return f"Wikipedia error: {e}"
+        return f"Wikipedia search failed ({type(e).__name__}: {e}). Try answering from your own knowledge and mention the tool was unavailable."
 
 
 @tool
